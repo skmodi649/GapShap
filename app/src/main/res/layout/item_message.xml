@@ -5,10 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     app:cardCornerRadius="15dp"
-    android:elevation="10dp"
-    android:layout_marginTop="@dimen/activity_horizontal_margin"
-    android:layout_marginLeft="@dimen/activity_horizontal_margin"
-    android:layout_marginRight="@dimen/activity_horizontal_margin">
+    android:elevation="20dp"
+    android:layout_margin="16dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -21,8 +19,9 @@
         android:id="@+id/photoImageView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:src="@android:drawable/ic_menu_gallery"
-        android:adjustViewBounds="true" />
+        android:adjustViewBounds="true"/>
+     <!--   android:src="@android:drawable/ic_menu_gallery" -->
+
 
     <TextView
         android:id="@+id/messageTextView"
