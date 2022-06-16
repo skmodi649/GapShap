@@ -12,12 +12,14 @@ import androidx.annotation.NonNull;
 
 import com.squareup.picasso.Picasso;
 
+import java.util.List;
+
 public class MessageAdapter extends ArrayAdapter<ModelClass> {
 
     private Context context;
 
 
-    public MessageAdapter(@NonNull Context context, int resource, @NonNull ModelClass[] objects) {
+    public MessageAdapter(@NonNull Context context, int resource, @NonNull List<ModelClass> objects) {
         super(context, resource, objects);
     }
 
