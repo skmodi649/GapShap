@@ -15,10 +15,11 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/linearLayout"
-        android:layout_marginBottom="6dp"
+        android:layout_marginBottom="0dp"
         android:divider="@android:color/transparent"
         android:stackFromBottom="true"
-        android:transcriptMode="alwaysScroll" />
+        android:transcriptMode="alwaysScroll"
+        tools:listitem="@layout/item_message" />
 
     <LinearLayout
         android:id="@+id/linearLayout"
@@ -40,12 +41,29 @@
             android:id="@+id/messageEditText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
             android:layout_gravity="center_vertical"
-            android:inputType="textPersonName"
-            android:text="Name" />
+            android:layout_weight="1"
+            android:text="@string/message"
+            tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+
+        <Button
+            android:id="@+id/sendButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:enabled="false"
+            android:text="@string/send_button_label"/>
+
+
     </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"/>
 
 
 
