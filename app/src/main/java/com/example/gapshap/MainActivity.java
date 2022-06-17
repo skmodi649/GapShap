@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputFilter;
@@ -22,7 +23,6 @@ import android.widget.Toast;
 import com.firebase.ui.auth.AuthUI;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.internal.zzx;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -147,52 +147,19 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        childEventListener = new ChildEventListener() {
 
-            // this method gets called whenever a new message i.e. child is added in the node, even called for existing children whenever
-            // a listener is attached
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-                ModelClass modelClass = snapshot.getValue(ModelClass.class);
-                mMessageAdapter.add(modelClass);
-            }
-
-            // when content of existing chid gets changed
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-            }
-
-            // when a child gets removed
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-
-            }
-
-            // when one of the child/message changed its position in the node
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-            }
-
-            // when some error occurs
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        };
-        // Attaching childEventListener to the database reference
-        mMessageDatabaseReference.addChildEventListener(childEventListener);
         mAuthStateListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
                 if(firebaseUser != null){
                     // user is signed in
-                    Toast.makeText(MainActivity.this, "You're now signed in. Welcome to FriendlyChat.", Toast.LENGTH_SHORT).show();
+                //    Toast.makeText(MainActivity.this, "You're now signed in. Welcome to FriendlyChat.", Toast.LENGTH_SHORT).show();
+                    onSignedInInitialize(firebaseUser.getDisplayName());
                 }
                 else{
                     // user is signed out
+                    onSignedOutCleanUp();
                     startActivityForResult(
                             AuthUI.getInstance()
                                     .createSignInIntentBuilder()
@@ -205,6 +172,21 @@ public class MainActivity extends AppCompatActivity {
         };
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RC_SIGN_IN) {
+            if (resultCode == RESULT_OK) {
+                // Sign-in succeeded, set up the UI
+                Toast.makeText(this, "Signed in!", Toast.LENGTH_SHORT).show();
+            } else if (resultCode == RESULT_CANCELED) {
+                // Sign in was canceled by the user, finish the activity
+                Toast.makeText(this, "Sign in canceled", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        }
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -215,18 +197,90 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        return super.onOptionsItemSelected(item);
+        switch(item.getItemId()){
+            case R.id.sign_out_menu:
+                // sign out
+                AuthUI.getInstance().signOut(this);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override
-    protected void onPause(){
+    protected void onPause() {
         super.onPause();
-        mFirebaseAuth.removeAuthStateListener(mAuthStateListener);
+        if (mAuthStateListener != null) {
+            mFirebaseAuth.removeAuthStateListener(mAuthStateListener);
+        }
+        detachDatabaseReadListener();
+        mMessageAdapter.clear();
     }
 
     @Override
     protected void onResume(){
         super.onResume();
         mFirebaseAuth.addAuthStateListener(mAuthStateListener);
+    }
+
+    private void onSignedInInitialize(String mUsername){
+        this.mUsername = mUsername;
+        // calling the read database method after the user has logged in the app
+        attachDatabaseReadListener();
+
+    }
+
+    private void onSignedOutCleanUp(){
+        mUsername = ANONYMOUS;
+        mMessageAdapter.clear();
+        detachDatabaseReadListener();
+
+    }
+    private void attachDatabaseReadListener(){
+        if(childEventListener == null) {
+            childEventListener = new ChildEventListener() {
+
+                // this method gets called whenever a new message i.e. child is added in the node, even called for existing children whenever
+                // a listener is attached
+                @Override
+                public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                    ModelClass modelClass = snapshot.getValue(ModelClass.class);
+                    mMessageAdapter.add(modelClass);
+                }
+
+                // when content of existing chid gets changed
+                @Override
+                public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                }
+
+                // when a child gets removed
+                @Override
+                public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+                }
+
+                // when one of the child/message changed its position in the node
+                @Override
+                public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+                }
+
+                // when some error occurs
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
+                }
+            };
+            // Attaching childEventListener to the database reference
+            mMessageDatabaseReference.addChildEventListener(childEventListener);
+        }
+    }
+
+    private void detachDatabaseReadListener(){
+        if(childEventListener != null){
+            mMessageDatabaseReference.removeEventListener(childEventListener);
+        }
+        childEventListener = null;
     }
 }
