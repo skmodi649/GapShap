@@ -1,5 +1,7 @@
 package com.example.gapshap;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
@@ -16,6 +18,9 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -42,6 +47,9 @@ public class MainActivity extends AppCompatActivity {
     // Now integrating the functionality of Realtime database
     private FirebaseDatabase mFirebaseDatabase;
     private DatabaseReference mMessageDatabaseReference;
+
+    // Child event listener for reading data from the realtime database
+    private ChildEventListener childEventListener;
 
 
     @Override
@@ -120,6 +128,43 @@ public class MainActivity extends AppCompatActivity {
                 mMessageEditText.setText("");
             }
         });
+
+        childEventListener = new ChildEventListener() {
+
+            // this method gets called whenever a new message i.e. child is added in the node, even called for existing children whenever
+            // a listener is attached
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                ModelClass modelClass = snapshot.getValue(ModelClass.class);
+                mMessageAdapter.add(modelClass);
+            }
+
+            // when content of existing chid gets changed
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            // when a child gets removed
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+            }
+
+            // when one of the child/message changed its position in the node
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            // when some error occurs
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        };
+        // Attaching childEventListener to the database reference
+        mMessageDatabaseReference.addChildEventListener(childEventListener);
     }
 
 
