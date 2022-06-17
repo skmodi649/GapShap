@@ -16,6 +16,9 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,6 +39,10 @@ public class MainActivity extends AppCompatActivity {
 
     private String mUsername;
 
+    // Now integrating the functionality of Realtime database
+    private FirebaseDatabase mFirebaseDatabase;
+    private DatabaseReference mMessageDatabaseReference;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +50,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mUsername = ANONYMOUS;
+
+
+        mFirebaseDatabase = FirebaseDatabase.getInstance();
+        mMessageDatabaseReference = mFirebaseDatabase.getReference().child("messages");
 
         // Initialize references to views
         mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
@@ -92,14 +103,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Limiting the message length to 1000 wrods only
+        // Limiting the message length to 1000 words only
         mMessageEditText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(MESSAGE_LENGTH_LIMIT)});
 
         // Send button sends the message and clears the editText
         mSendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // TODO : send message on click
+                // Creating the object for the Model class that contains name, message and photo url
+                ModelClass modelClass = new ModelClass(mUsername, mMessageEditText.getText().toString(), null);
+                // We have kept photo url to be null as of now
+                // Now storing the data to database, push method to be used because we have to create unique id for each message
+                mMessageDatabaseReference.push().setValue(modelClass);
 
                 // clearing the input box
                 mMessageEditText.setText("");
