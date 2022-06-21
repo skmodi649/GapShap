@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "459843427406",
+    "firebase_url": "https://gapchap-a06e8-default-rtdb.firebaseio.com",
     "project_id": "gapchap-a06e8",
     "storage_bucket": "gapchap-a06e8.appspot.com"
   },
@@ -13,6 +14,14 @@
         }
       },
       "oauth_client": [
+        {
+          "client_id": "459843427406-mbn9uqq33stagbol0pb1tundhjmrnm8f.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.gapshap",
+            "certificate_hash": "9438697e522ef410daa7d53e910776226388f142"
+          }
+        },
         {
           "client_id": "459843427406-a2mbtiuhs0o6tbn049alrin1412ib3h6.apps.googleusercontent.com",
           "client_type": 3

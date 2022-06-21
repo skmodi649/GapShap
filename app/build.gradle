@@ -1,6 +1,5 @@
 plugins {
     id 'com.android.application'
-    id 'com.google.gms.google-services'
 }
 
 android {
@@ -44,3 +43,4 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth:21.0.5'
     implementation 'com.firebaseui:firebase-ui-auth:8.0.1'
 }
+apply plugin: 'com.google.gms.google-services'

@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -22,8 +23,12 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.firebase.ui.auth.AuthUI;
+import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.internal.Storage;
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -38,6 +43,7 @@ import com.google.firebase.storage.UploadTask;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -49,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
 
     public static final int RC_SIGN_IN = 1;
 
-    private static final int RC_PHOTO_PICKER =  2;
+    private static final int RC_PHOTO_PICKER =  71;
 
     private ListView mMessageListView;
     private MessageAdapter mMessageAdapter;
@@ -120,9 +126,9 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 // TODO : Fire an intent to show a image picker
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("image/jpeg");
+                intent.setType("image/*");
                 intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
-                startActivityForResult(Intent.createChooser(intent, "Complete action using"), RC_PHOTO_PICKER);
+                startActivityForResult(Intent.createChooser(intent, "Select Picture"), RC_PHOTO_PICKER);
             }
         });
 
@@ -183,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
                             AuthUI.getInstance()
                                     .createSignInIntentBuilder()
                                     .setAvailableProviders(Arrays.asList(
-                                            new AuthUI.IdpConfig.EmailBuilder().build()))
+                                            new AuthUI.IdpConfig.EmailBuilder().build(), new AuthUI.IdpConfig.GoogleBuilder().build()))
                                     .build(),
                             RC_SIGN_IN);
                 }
@@ -211,28 +217,21 @@ public class MainActivity extends AppCompatActivity {
         }
 
         private void uploadPhotoInFirebase(@Nullable Intent data){
-        Uri selectedImageUri = data.getData();
+            Uri selectedImageUri = data.getData();
             // Get a reference to store file at chat_photos/<FILENAME>
-            final StorageReference photoRef = storageReference.child(selectedImageUri.getLastPathSegment());
-
-            // Image has been uploaded in the firebase storage
-            // Now we need to generate Uri for the image uploaded in the firebase storage
-            photoRef.putFile(selectedImageUri)
-                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                        @Override
+            StorageReference photoRef =
+                    storageReference.child(selectedImageUri.getLastPathSegment());
+            // Upload file to Firebase Storage
+            photoRef.putFile(selectedImageUri).addOnSuccessListener(
+                    this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            // When the image has successfully uploaded, we get its download URL
+                            Task<Uri> urlTask = taskSnapshot.getMetadata().getReference().getDownloadUrl();
+                            while (!urlTask.isSuccessful());
+                            Uri downloadUrl = urlTask.getResult();
 
-                            // Download file From Firebase Storage
-                            photoRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                                @Override
-                                public void onSuccess(Uri downloadPhotoUrl) {
-                                    //Now play with downloadPhotoUrl
-                                    //Store data into Firebase Realtime Database
-                                    ModelClass modelClass = new ModelClass
-                                            (mUsername, null, downloadPhotoUrl.toString());
-                                    mMessageDatabaseReference.push().setValue(modelClass);
-                                }
-                            });
+                            ModelClass modelClass = new ModelClass(mUsername, null, downloadUrl.toString());
+                            mMessageDatabaseReference.push().setValue(modelClass);
                         }
                     });
         }
