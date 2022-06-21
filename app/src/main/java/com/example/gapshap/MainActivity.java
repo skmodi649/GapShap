@@ -203,25 +203,39 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Sign in canceled", Toast.LENGTH_SHORT).show();
                 finish();
             }
+        }
             else if(resultCode == RC_PHOTO_PICKER && resultCode == RESULT_OK){
-                Uri selectedImageUri = data.getData();
-
-                // Get a reference to store file at chat_photos/<FILENAME>
-                StorageReference photoRef = storageReference.child(selectedImageUri.getEncodedPath());
-
-                // Now uploading file to firebase storage using put file method
-                photoRef.putFile(selectedImageUri).addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        Uri downloadUrl = taskSnapshot.getUploadSessionUri();
-                        ModelClass modelClass = new ModelClass(mUsername, null, downloadUrl.toString());
-                        mMessageDatabaseReference.push().setValue(modelClass);
-
-                    }
-                });
+                // HERE I CALLED THAT METHOD
+                uploadPhotoInFirebase(data);
             }
         }
-    }
+
+        private void uploadPhotoInFirebase(@Nullable Intent data){
+        Uri selectedImageUri = data.getData();
+            // Get a reference to store file at chat_photos/<FILENAME>
+            final StorageReference photoRef = storageReference.child(selectedImageUri.getLastPathSegment());
+
+            // Image has been uploaded in the firebase storage
+            // Now we need to generate Uri for the image uploaded in the firebase storage
+            photoRef.putFile(selectedImageUri)
+                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+
+                            // Download file From Firebase Storage
+                            photoRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                @Override
+                                public void onSuccess(Uri downloadPhotoUrl) {
+                                    //Now play with downloadPhotoUrl
+                                    //Store data into Firebase Realtime Database
+                                    ModelClass modelClass = new ModelClass
+                                            (mUsername, null, downloadPhotoUrl.toString());
+                                    mMessageDatabaseReference.push().setValue(modelClass);
+                                }
+                            });
+                        }
+                    });
+        }
 
 
     @Override

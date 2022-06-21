@@ -5,6 +5,7 @@ import android.graphics.ColorSpace;
 public class ModelClass {
     private String name;
     private String text;
+    private String photoUrl;
 
     public ModelClass(){
 
@@ -39,7 +40,4 @@ public class ModelClass {
     public void setPhotoUrl(String photoUrl) {
         this.photoUrl = photoUrl;
     }
-
-    private String photoUrl;
-
 }
