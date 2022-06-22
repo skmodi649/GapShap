@@ -210,7 +210,7 @@ public class MainActivity extends AppCompatActivity {
                 finish();
             }
         }
-            else if(resultCode == RC_PHOTO_PICKER && resultCode == RESULT_OK){
+            if(resultCode == RC_PHOTO_PICKER && resultCode == RESULT_OK){
                 // HERE I CALLED THAT METHOD
                 uploadPhotoInFirebase(data);
             }
