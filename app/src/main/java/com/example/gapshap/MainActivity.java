@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -22,6 +23,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.firebase.ui.auth.AuthUI;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -217,6 +219,9 @@ public class MainActivity extends AppCompatActivity {
         defaultConfigMap.put(MESSAGE_LENGTH, MESSAGE_LENGTH_LIMIT);
         mFirebaseRemoteConfig.setDefaultsAsync(defaultConfigMap);
 
+        // Now fetching the config that we set up above
+        fetchConfig();
+
 
     }
 
@@ -355,4 +360,37 @@ public class MainActivity extends AppCompatActivity {
         }
         childEventListener = null;
     }
+
+    // Method for fetching the config
+    public void fetchConfig(){
+        mFirebaseRemoteConfig.fetch(cacheExpiration).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void unused) {
+                // Make the fetched config available
+                // via FirebaseRemoteConfig get<type> calls, e.g., getLong, getString.
+                mFirebaseRemoteConfig.activate();
+
+                // Update the EditText length limit with
+                // the newly retrieved values from Remote Config.
+                applyRetrievedLengthLimit();
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                // An error occurred when fetching the config.
+                Log.w(TAG, "Error fetching config", e);
+
+                // Update the EditText length limit with
+                // the newly retrieved values from Remote Config.
+                applyRetrievedLengthLimit();
+            }
+        });
+    }
+
+    private void applyRetrievedLengthLimit() {
+        Long msg_length = mFirebaseRemoteConfig.getLong(MESSAGE_LENGTH);
+        mMessageEditText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(msg_length.intValue())});
+        Log.d(TAG, MESSAGE_LENGTH + " = " + msg_length);
+    }
+
 }
